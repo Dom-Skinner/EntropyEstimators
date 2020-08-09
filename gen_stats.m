@@ -11,6 +11,7 @@ X(X==0) = n;
 
 % Since we do not use the time at which things happened, make X so that
 % each value is different from the previous one
+%{
 i = 1;
 while i < length(X)
     if X(i) == X(i+1)
@@ -19,6 +20,9 @@ while i < length(X)
         i = i+ 1;
     end
 end
+%}
+not_repeat = X(2:end) ~= X(1:end-1);
+X = X([true;not_repeat]);
 
 % Count the rate at which we see transitions i -> j
 trans = zeros(n,n);
