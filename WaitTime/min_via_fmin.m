@@ -45,13 +45,14 @@ if islogical(x0)
     for i= 1:size(B0,1)
         B0(i,i) = B0(i,i) - sum(B0(i,:)) - sum(B0(:,i))+ rand();
     end
+    %B0 = B0/sum(B0(:));
     x0 = ones(nvars,1);
     x0(1:n_int^2) = reshape(B0,n_int^2,1);
     x0(n_int^2 + 1 : end) = 1/n_int;
 end
 options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
     'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+03,...
-    'MaxIterations',8e3,'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true,'HessianFcn',hessfcn);
+    'MaxIterations',8e3,'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true);
 if hess
     options.HessianFcn = hessfcn;
     options.DiffMaxChange = 1;
@@ -99,7 +100,11 @@ function [c, ceq,DC,DCeq] = simple_constraint(x,n_int,sig_f)
     M = zeros(n_int,n_int);
     for k = 1:n_int
         for l = 1:n_int
-            M(k,l) = - h(-B(k,l),-B(l,k)) + h(-c_(k),-d_(k)) + h(-d_(l),-c_(l));
+            if l ~=k
+                M(k,l) = - h(-B(k,l),-B(l,k)) + h(-c_(k),-d_(k)) + h(-d_(l),-c_(l));
+            else
+                M(k,l) =  h(-c_(k),-d_(k)) + h(-d_(l),-c_(l));
+            end
         end
     end
     DC = [reshape(M,n_int^2,1);zeros(n_int,1)];
