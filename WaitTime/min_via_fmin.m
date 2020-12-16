@@ -95,8 +95,8 @@ function [c, ceq,DC,DCeq] = simple_constraint(x,n_int,sig_f)
                     sig = sig + g(-c_(k),-d_(k));%(c_k - d_k)*log((c_k+eps)/(d_k+eps));
         %end
     end
-    ceq = [];
-    c = sig-sig_f;
+    c = [];
+    ceq = sig-sig_f;
     M = zeros(n_int,n_int);
     for k = 1:n_int
         for l = 1:n_int
@@ -107,8 +107,8 @@ function [c, ceq,DC,DCeq] = simple_constraint(x,n_int,sig_f)
             end
         end
     end
-    DC = [reshape(M,n_int^2,1);zeros(n_int,1)];
-    DCeq = [];
+    DCeq = [reshape(M,n_int^2,1);zeros(n_int,1)];
+    DC = [];
 end
 
 function [p,q] = index_ref(k,n_int)
@@ -117,7 +117,7 @@ function [p,q] = index_ref(k,n_int)
 end
         
     function Hout = hessianfcn(x,lambda,n_int)
-        lam = lambda.ineqnonlin;
+        lam = lambda.eqnonlin;
         B = reshape(x(1:n_int^2),n_int,n_int);
         Binv = inv(B);
         xs = x(n_int^2+1:end);
