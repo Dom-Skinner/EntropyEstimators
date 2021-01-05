@@ -27,9 +27,17 @@ for i = 1:250
     % Newton iterate for entropy
     lam = - f(A,sig)/ norm(gf(A))^2;
     A = A + lam*gf(A);
+    A(A>0) = -A(A>0);
+    A(1:n_int+2:end) = -A(1:n_int+2:end);
 end
+
+
 B = A(1:n_int,1:n_int);
 x = rand(n_int,1);
 x = x/sum(x);
+if (min(sum(B)) < 0 ) || (min(sum(B')) < 0 )
+    disp('recursing')
+    [x,B] = rand_init_cond(n_int,sig/2); % doesn't converge - try with easier sig
+end
 end
 

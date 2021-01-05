@@ -1,4 +1,4 @@
-function [x,fval,exitflag] = min_via_fmin(n_int, sig_f,ctol,otol,x0,hess)
+function [x,fval,exitflag] = min_via_fmin(n_int, sig_f,ctol,otol,x0,hess,globS)
 % Calculate a lower bound for entropy production given that we have seen
 % nVW transitions V -> W, nVU transitions V -> U, nUV transitions U -> V,
 % and nVUPUWV transitions W -> V -> U.
@@ -41,14 +41,22 @@ ConstraintFunction = @(x) simple_constraint(x,n_int,2*sig_f); % the one non-line
 hessfcn = @(x,lambda) hessianfcn(x,lambda,n_int);
 % Set up the problem with an initial guess and solve
 if islogical(x0)
+    %{
     B0 = -rand(n_int,n_int);
     for i= 1:size(B0,1)
-        B0(i,i) = B0(i,i) - sum(B0(i,:)) - sum(B0(:,i))+ rand();
+        %B0(i,i) = B0(i,i) - sum(B0(i,:)) - sum(B0(:,i))+ rand();
+        B0(i,i) = - min([sum(B0(i,:));sum(B0(:,i))])+ rand();
     end
     %B0 = B0/sum(B0(:));
+    y0 = ones(n_int,1)/n_int;
+    %}
+    [y0,B0] = rand_init_cond(n_int,sig_f);
     x0 = ones(nvars,1);
     x0(1:n_int^2) = reshape(B0,n_int^2,1);
-    x0(n_int^2 + 1 : end) = 1/n_int;
+    x0(n_int^2 + 1 : end) = y0;%1/n_int;
+    [~, ceq,~,DCeq] = simple_constraint(x0,n_int,sig_f);
+    
+    
 end
 options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
     'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+03,...
@@ -57,7 +65,14 @@ if hess
     options.HessianFcn = hessfcn;
     options.DiffMaxChange = 1;
 end
-[x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,Aeq,beq,LB,UB,ConstraintFunction,options);
+if globS
+    problem = createOptimProblem('fmincon','x0',x0,'objective',ObjectiveFunction,...
+        'lb',LB,'ub',UB, 'Aineq',A,'bineq',b,'Aeq',Aeq,'beq',beq,'nonlcon',ConstraintFunction,'options',options);
+    gs = GlobalSearch;
+    [x,fval,exitflag,~] = run(gs,problem);
+else
+    [x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,Aeq,beq,LB,UB,ConstraintFunction,options);
+end
 fval = 2*fval;
 
 function [f,gradf] = time_var(x,n_int)
@@ -74,7 +89,7 @@ function [c, ceq,DC,DCeq] = simple_constraint(x,n_int,sig_f)
     % The one non-linear equality constraint
     B = reshape(x(1:n_int^2),n_int,n_int);
     sig = 0;
-    g = @(x,y) (x-y)*log( (x+eps)/(y + eps));
+    g = @(x,y) (x-y)*log( (x+eps)/(y + eps)) + x*1j*(x<-eps);
     h = @(x,y) (x-y)/(x + eps) +log( (x+eps)/(y + eps));
     for k = 1:(n_int-1)
         for l = (k+1):n_int
