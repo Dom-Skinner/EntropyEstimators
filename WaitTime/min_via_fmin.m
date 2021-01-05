@@ -50,13 +50,14 @@ if islogical(x0)
     x0(1:n_int^2) = reshape(B0,n_int^2,1);
     x0(n_int^2 + 1 : end) = 1/n_int;
 end
-options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
-    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+03,...
-    'MaxIterations',8e3,'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true);
+options = optimoptions('fmincon','ConstraintTolerance',ctol,...
+    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 3e+04,...
+    'MaxIterations',3e4,'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true);
 if hess
     options.HessianFcn = hessfcn;
-    options.DiffMaxChange = 1;
+    %options.DiffMaxChange = 1;
 end
+options.Display = 'iter';
 [x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,Aeq,beq,LB,UB,ConstraintFunction,options);
 fval = 2*fval;
 
@@ -74,8 +75,9 @@ function [c, ceq,DC,DCeq] = simple_constraint(x,n_int,sig_f)
     % The one non-linear equality constraint
     B = reshape(x(1:n_int^2),n_int,n_int);
     sig = 0;
-    g = @(x,y) (x-y)*log( (x+eps)/(y + eps));
-    h = @(x,y) (x-y)/(x + eps) +log( (x+eps)/(y + eps));
+    eps_ = 1000*eps;
+    g = @(x,y) (x-y)*(log( (x+eps_)/(y + eps_)));
+    h = @(x,y) (x-y)/(x + eps_) +(log( (x+eps_)/(y + eps_)));
     for k = 1:(n_int-1)
         for l = (k+1):n_int
                % if (abs(B(k,l)) > eps) && (abs(B(l,k)) > eps)
