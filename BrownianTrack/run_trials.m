@@ -2,7 +2,7 @@ function sig = run_trials(N,M,ntrials,t2)
 
 otol = 1e-6;
 ctol = 1e-6;
-sig = 2*ones(ntrials,1);
+sig = -2*ones(ntrials,1);
 
 for i = 1:ntrials
     [~,~,~,~,~,~,fval,exitflg] = min_cont(N,M, t2,otol,ctol);
@@ -11,5 +11,5 @@ for i = 1:ntrials
     end
 end
 
-sig = min(sig);
+sig = min(sig(sig>0));
 end
