@@ -1,5 +1,5 @@
 function sig = entropy_rate(a,c,p,F,D)
-x = linspace(0,1,120);
+x = linspace(0,1,800);
 x = x(1:end-1);
 
 rs = @(fk) 2*real(sum( fk(2:end) .* exp( 1j * 2* pi* (1:length(fk)-1)' * x))) + real(fk(1));
@@ -16,5 +16,7 @@ Dpp = rs_p2(D);
 D = rs(D);
 
 
-sig = sum( 0.5*a.*log(a./c) + p.*c.*log(c./a) + p.*( F.^2 ./D + Fp - 3*F.*Dp./D + Dp.^2 ./D - Dpp))/length(x);
+
+%sig = sum( 0.5*a.*log(a./c) + p.*c.*log(c./a) + p.*( F.^2 ./D + Fp - 3*F.*Dp./D + Dp.^2 ./D - Dpp))/length(x);
+sig = sum( 0.5*a.*log(a./c) + p.*c.*log(c./a) + 0.5.*( F.^2 ./D) )/length(x);
 end

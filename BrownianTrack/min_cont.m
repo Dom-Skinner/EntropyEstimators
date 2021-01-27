@@ -26,9 +26,9 @@ ai = zeros(M,1);
 cr = zeros(M+1,1);
 ci = zeros(M,1);
 D = 0.01;
-F = 1;
-ar(2) = 0.2*rand();
-ci(2) = 0.2*rand();
+F = 0.1;
+ar(2) = 0.1;%*rand();
+ci(2) = 0.1;%*rand();
 cr(1) = 1;
 x0 = [ar;ai;cr;ci;D;F];
 
@@ -47,8 +47,8 @@ end
 b = [ones(M0,1);zeros(M0,1)];
 
 options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
-    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+04);
-
+    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+04,'SpecifyObjectiveGradient',true);
+%
 %[x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,[],[],LB,UB,ConstraintFunction,options);
 
 problem = createOptimProblem('fmincon','x0',x0,'objective',ObjectiveFunction,...
@@ -79,13 +79,39 @@ function [c, ceq] = simple_constraint(x,N,M,t2)
     c = [];
 end
 
-function f = obj(x,N,M)
+function [f,df] = obj(x,N,M)
     %make_full = @(fk) [conj(fk(end:-1:1)); fk(2:end)];
     %reduce = @(fk) fk((numel(fk)-1)/2+1 :end);
     [ak,ck,Dk,Fk] = unpack(x,N,M);
     L = L_matrix(Fk,Dk,ck);
     p = -0.5*reduce((L') \ make_full(ak));
     f = entropy_rate(ak,ck,p,Fk,Dk);
+    %%{
+    [P,Q,R] = entropy_grad(ak,ck,p);
+    w = conj(L \ conj(P));
+    ds_dF  = real(Fk(1)/Dk(1) + 2*pi* 1j * sum( (-N/2 : N/2)' .* w));
+    ds_dD  = real(-0.5*Fk(1)^2/Dk(1)^2 + 4*pi^2 * sum( ((-N/2 : N/2).^2)' .* w));
+    ds_dar = real(-w + Q);
+    ds_dai = imag(w - Q);
+    ds_dbr = real(R);
+    ds_dbi = -imag(R);
+    offset = N/2 + 1;
+    p = make_full(p);
+    for idx = 1:length(ds_dbi)
+        k = idx - offset;
+        l = -N/2:N/2;
+        dxs = l((l - k >= -N/2) & (l-k <= N/2)) + offset;
+        ds_dbr(idx) = ds_dbr(idx) + 2*real(sum(w(dxs).*real( p(dxs -k))));
+        ds_dbi(idx) = ds_dbr(idx) - 2*imag(sum(w(dxs).*real( p(dxs -k))));
+    end
+    
+    ds_dar = reduce(ds_dar);
+    ds_dai = reduce(ds_dai);
+    ds_dbr = reduce(ds_dbr);
+    ds_dbi = reduce(ds_dbi);
+    
+    df = repack(M,ds_dar + 1j*ds_dai,ds_dbr + 1j*ds_dbi,ds_dD,ds_dF);
+    %}
 end
 function f = make_full(fk)
     f = [conj(fk(end:-1:1)); fk(2:end)];
