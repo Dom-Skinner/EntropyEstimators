@@ -9,7 +9,7 @@ function [a,c,Dr,Fr,Tf,pf,fval,exitflag] = min_cont(N,M, t2,ctol,otol)
 assert(isscalar(N+M+t2),'Error: Non-scalar input')
 assert( floor(N) == N && (t2 > 0) && (N > 0) && (M>0))
 
-ObjectiveFunction = @(x) obj(x,N,M);
+ObjectiveFunction = @(x) obj_fun(x,N,M);
 nvars = 4*M + 3;
 UB = (1e4)*ones(nvars,1);
 LB = -(1e4)*ones(nvars,1);
@@ -18,7 +18,7 @@ LB(end-1:end) = 0;
 % Set up the constraints for the problem. Constraints come from probability
 % consv. and specifics about the entropy
 
-ConstraintFunction = @(x) simple_constraint(x,N,M,t2); % the one non-linear constraint
+ConstraintFunction = @(x) opt_constraint(x,N,M,t2); % the one non-linear constraint
 
 % Set up the problem with an initial guess and solve
 ar = zeros(M,1);
@@ -47,7 +47,8 @@ end
 b = [ones(M0,1);zeros(M0,1)];
 
 options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
-    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+04,'SpecifyObjectiveGradient',true);
+    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+04,...
+    'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true);
 %
 %[x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,[],[],LB,UB,ConstraintFunction,options);
 
@@ -79,6 +80,7 @@ function [c, ceq] = simple_constraint(x,N,M,t2)
     c = [];
 end
 
+%{
 function [f,df] = obj(x,N,M)
     %make_full = @(fk) [conj(fk(end:-1:1)); fk(2:end)];
     %reduce = @(fk) fk((numel(fk)-1)/2+1 :end);
@@ -111,8 +113,9 @@ function [f,df] = obj(x,N,M)
     ds_dbi = reduce(ds_dbi);
     
     df = repack(M,ds_dar + 1j*ds_dai,ds_dbr + 1j*ds_dbi,ds_dD,ds_dF);
-    %}
+    
 end
+%}
 function f = make_full(fk)
     f = [conj(fk(end:-1:1)); fk(2:end)];
 end

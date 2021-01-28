@@ -22,12 +22,19 @@ function [f,df] = obj_fun(x,N,M)
     ds_dbr = real(R);
     ds_dbi = -imag(R);
     offset = N/2 + 1;
+   % ds_dbr(offset) = 0.5*real(R(offset));
     for idx = 1:length(ds_dbi)
         k = idx - offset;
         l = -N/2:N/2;
         dxs = l((l - k >= -N/2) & (l-k <= N/2)) + offset;
-        ds_dbr(idx) = ds_dbr(idx) + 2*real(sum(w(dxs).*real( p(dxs -k))));
-        ds_dbi(idx) = ds_dbr(idx) - 2*imag(sum(w(dxs).*real( p(dxs -k))));
+        ds_dbr(idx) = ds_dbr(idx) + real(sum(w(dxs).* p(dxs -k)));
+        ds_dbi(idx) = ds_dbi(idx) - imag(sum(w(dxs).*p(dxs -k)));
+        
+       % if k ~=0
+        dxs = l((l + k >= -N/2) & (l+k <= N/2)) + offset;
+        ds_dbr(idx) = ds_dbr(idx) + real(sum(w(dxs).* p(dxs +k)));
+        ds_dbi(idx) = ds_dbi(idx) + imag(sum(w(dxs).*p(dxs +k)));
+       % end
     end
     
     ds_dar = reduce(ds_dar);
