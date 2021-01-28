@@ -27,8 +27,8 @@ cr = zeros(M+1,1);
 ci = zeros(M,1);
 D = 0.01;
 F = 0.1;
-ar(2) = 0.1;%*rand();
-ci(2) = 0.1;%*rand();
+ar(2) = 0.1*rand();
+ci(2) = 0.1*rand();
 cr(1) = 1;
 x0 = [ar;ai;cr;ci;D;F];
 
@@ -47,7 +47,7 @@ end
 b = [ones(M0,1);zeros(M0,1)];
 
 options = optimoptions('fmincon','Display','iter','ConstraintTolerance',ctol,...
-    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 8e+04,...
+    'OptimalityTolerance',otol,'MaxFunctionEvaluations', 1e+04,...
     'SpecifyObjectiveGradient',true,'SpecifyConstraintGradient',true);
 %
 %[x,fval,exitflag,~]  = fmincon(ObjectiveFunction,x0,A,b,[],[],LB,UB,ConstraintFunction,options);
@@ -64,6 +64,7 @@ dsf(1) = 1;
 Tf = 2*reduce(Lf\(Lf \ make_full(dsf)));
 pf = -0.5*reduce((Lf') \ make_full(a));
 
+%{
 function [c, ceq] = simple_constraint(x,N,M,t2)
     %make_full = @(fk) [conj(fk(end:-1:1)); fk(2:end)];
     %reduce = @(fk) fk((numel(fk)-1)/2+1 :end);
@@ -79,7 +80,7 @@ function [c, ceq] = simple_constraint(x,N,M,t2)
     ceq = [T2 - t2; real(p(1))-0.5];
     c = [];
 end
-
+%}
 %{
 function [f,df] = obj(x,N,M)
     %make_full = @(fk) [conj(fk(end:-1:1)); fk(2:end)];

@@ -1,7 +1,8 @@
-function L = L_matrix(Fk,Dk,ck)
+function L = L_matrix(Fk,Dk,bk)
 N = 2*length(Fk)-2;
 offset = length(Fk);
-
+%{
+% For general matrix with F, D non constant
 L = zeros(N+1,N+1);
 for r = -(N/2):(N/2)
     for k = -(N/2):(N/2)
@@ -14,6 +15,18 @@ for r = -(N/2):(N/2)
                 end
             end
     end
+end
+%}
+
+% This faster version only works for F, D const.
+make_full = @(fk) [conj(fk(end:-1:1)); fk(2:end)];
+b_conj= make_full(bk)';
+L = diag(2*pi*Fk(1)*1j*(-N/2:N/2) -Dk(1)*(2*pi)^2 *(-N/2:N/2).^2);
+offset = N/2+1;
+for k = -(N/2):(N/2)
+    l = -N/2:N/2;
+    dxs = l((l - k >= -N/2) & (l-k <= N/2)) + offset;   
+    L(k+offset,dxs) = L(k+offset,dxs) - b_conj( dxs-k);
 end
 
 end
