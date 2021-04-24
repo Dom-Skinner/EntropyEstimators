@@ -1,4 +1,6 @@
 function vq = gamma_precomp(x_in,invert)
+% use invert = true if inputing in <t^2>/<t>^2 else use false if inputting
+% sigma
 load('nvars_comb.mat','sig_est')
 sig = sig_est(:,1);
 f = min(sig_est(:,2:end),[],2);

@@ -1,4 +1,4 @@
-% basic parameter sweep code
+% basic parameter sweep code which parallelizes the 
 %
 % Want to parallelize the following loop:
 % for ii = 1:n

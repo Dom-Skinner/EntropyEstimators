@@ -1,7 +1,7 @@
-function sig_est = run_trials(ntrials,sig_est,nvars,sig_inx,hess,rand_init)
+function sig_est = run_trials(ntrials,sig_est,nvars,sig_inx,hess,rand_init,gs)
 % Run a number of trials and update the matrix sig_est accordingly
-ctol = 1e-6;
-otol = 1e-6;
+ctol = 1e-7;
+otol = 2e-7;
 fvals = 2*ones(ntrials,1); % min is always <= 2
 for j = 1:ntrials
     
@@ -24,8 +24,8 @@ for j = 1:ntrials
     end
             
     
-    [~,fval,exitflag] = min_via_fmin(nvars, sig_est(sig_inx,1),ctol,otol,x0,hess);
-    if exitflag == 1
+    [~,fval,exitflag] = min_via_fmin(nvars, sig_est(sig_inx,1),ctol,otol,x0,hess,gs);
+    if exitflag >= 1 
         fvals(j) = fval;
     else
         disp('did not converge')
