@@ -88,6 +88,35 @@ title('Mouse')
 
 saveas(gcf,'EcgTrace.pdf')
 
+%% Plot fig 4(a) and where the estimates lie on it.
+clear
+load n_conv_fine
+
+for i = 2:19
+    hold on
+    plot([0;sig_est(:,1)],[1;sig_est(:,i)-1],'-');     
+end
+
+s = linspace(20,200,400);
+plot(s,1 ./s + 4*log(s) ./ (s.^2),':')
+
+s = zeros(65,1);
+s1 = zeros(size(s));
+s2 = zeros(size(s));
+s3 = zeros(size(s));
+s4 = zeros(size(s));
+for k = 1:size(s,1)
+    s(k) = s_extrap(sig_est(k,12:19),12:19);
+    s2(k) = s_extrap(sig_est(k,13:19),13:19);
+    s3(k) = s_extrap(sig_est(k,12:17),12:17);
+    s4(k) = median([s(k)  s2(k) s3(k)]);
+end
+sig = sig_est(1:size(s,1),1);
+hold on
+plot(sig,s4-1)
+
+
+
 %% Calculate entropy estimates
 % Here we use the data directly as measured in Umetani et al. and Behar et
 % al. (see main text and SI).
@@ -101,26 +130,45 @@ s_asy = @(t2) 1/t2 + 4*log(1/t2);
 var_A = 81^2; % square of stdev
 tA = 1000*60/80; % convert from beats per min to ms
 var_A_scaled = var_A/tA^2;
-sig = (1/tA) * s_asy(var_A_scaled)*1000;
+sig = (2/tA) * s_asy(var_A_scaled)*1000;
 fprintf('Entropy production ~%5.1f k_B/s for 10-19 year old human\n',sig)
+hold on
+plot([1,s_asy(var_A_scaled)],var_A_scaled *[1 1],'k:')
+plot(s_asy(var_A_scaled) *[1 1],[0.001,var_A_scaled ],'k:')
 
 % For 40-49 year old humans
 var_A = 60^2; % square of stdev
 tA = 1000*60/78; % convert from beats per min to ms
 var_A_scaled = var_A/tA^2;
-sig = (1/tA) * s_asy(var_A_scaled)*1000;
+sig = (2/tA) * s_asy(var_A_scaled)*1000;
 fprintf('Entropy production ~%5.1f k_B/s for 40-49 year old human\n',sig)
+hold on
+plot([1,s_asy(var_A_scaled)],var_A_scaled *[1 1],'k:')
+plot(s_asy(var_A_scaled) *[1 1],[0.001,var_A_scaled ],'k:')
 
 % For dogs
 var_A = 69.20^2;
 tA = 482.63;
 var_A_scaled = var_A/tA^2;
-sig = (1/tA) * s_asy(var_A_scaled)*1000;
+sig = (2/tA) * s_asy(var_A_scaled)*1000;
 fprintf('Entropy production ~%5.1f k_B/s for dogs\n',sig)
+hold on
+plot([1,s_asy(var_A_scaled)],var_A_scaled *[1 1],'k:')
+plot(s_asy(var_A_scaled) *[1 1],[0.001,var_A_scaled ],'k:')
 
 % For mice
 var_A = 10.39^2;
 tA = 108.46;
 var_A_scaled = var_A/tA^2;
-sig = (1/tA) * s_asy(var_A_scaled)*1000;
+sig = (2/tA) * s_asy(var_A_scaled)*1000;
 fprintf('Entropy production ~%5.1f k_B/s for mice\n',sig)
+hold on
+plot([1,s_asy(var_A_scaled)],var_A_scaled *[1 1],'k:')
+plot(s_asy(var_A_scaled) *[1 1],[0.001,var_A_scaled ],'k:')
+
+set(gca, 'YScale', 'log')
+set(gca, 'XScale', 'log')
+xlim([1,200])
+ylim([0.005,1])
+
+saveas(gcf,'Fig4a.pdf')

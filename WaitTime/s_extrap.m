@@ -3,7 +3,6 @@ function x = s_extrap(F,X)
 ObjectiveFunction = @(x) fit_res(x,F,X);
 C1 = linspace(1,min(F),1000);
 [R,~] = fit_res(C1,F,X);
-
 idx = find( (R(1:end-2) > R(2:end-1)) & (R(3:end) > R(2:end-1)));
 if isempty(idx)
     x = min(F);
